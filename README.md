@@ -76,9 +76,9 @@ It reflects real-world full-stack development experience.
 
 ---
 
-👤 Author
+👤 Author's
 
-Shivansh Rajput  
+Code Wale
 
 ---
 
