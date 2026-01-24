@@ -11,17 +11,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ================= DATABASE =================
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.log("MongoDB error:", err));
+// ================= ROUTES =================
 
-// ================= ROOT CHECK =================
+// Health check
 app.get("/", (req, res) => {
   res.send("Backend running 🚀");
 });
 
-// ================= CREATE HUB =================
+// Create Hub
 app.post("/hub/create", async (req, res) => {
   try {
     const { username, title } = req.body;
@@ -50,11 +47,10 @@ app.post("/hub/create", async (req, res) => {
   }
 });
 
-// ================= GET HUB =================
+// Get Hub
 app.get("/hub/:username", async (req, res) => {
   try {
     const hub = await Hub.findOne({ username: req.params.username });
-
     if (!hub) {
       return res.status(404).json({ message: "Hub not found" });
     }
@@ -69,7 +65,7 @@ app.get("/hub/:username", async (req, res) => {
   }
 });
 
-// ================= ADD LINK =================
+// Add Link
 app.post("/hub/:username/link", async (req, res) => {
   try {
     const { title, url } = req.body;
@@ -79,13 +75,9 @@ app.post("/hub/:username/link", async (req, res) => {
       return res.status(404).json({ message: "Hub not found" });
     }
 
-    hub.links.push({
-      title,
-      url,
-      clicks: 0
-    });
-
+    hub.links.push({ title, url, clicks: 0 });
     await hub.save();
+
     res.json(hub);
 
   } catch (err) {
@@ -93,11 +85,10 @@ app.post("/hub/:username/link", async (req, res) => {
   }
 });
 
-// ================= CLICK TRACKING =================
+// Click Tracking
 app.get("/hub/:username/click/:index", async (req, res) => {
   try {
     const hub = await Hub.findOne({ username: req.params.username });
-
     if (!hub) return res.send("Hub not found");
 
     const link = hub.links[req.params.index];
@@ -113,8 +104,20 @@ app.get("/hub/:username/click/:index", async (req, res) => {
   }
 });
 
-// ================= SERVER =================
+// ================= DATABASE + SERVER =================
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+
+mongoose.connect(process.env.MONGO_URI, {
+  serverSelectionTimeoutMS: 5000
+})
+.then(() => {
+  console.log("MongoDB connected");
+
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+
+})
+.catch(err => {
+  console.error("MongoDB connection failed:", err);
 });
