@@ -4,11 +4,12 @@ function App() {
   const [hub, setHub] = useState(null);
   const [error, setError] = useState(null);
 
-  // 🔴 CHANGE THIS TO YOUR HUB USERNAME
-  const USERNAME = "demo"; // example: demo, finalproof, shivansh
+  // ✅ CORRECT HUB USERNAME
+  const USERNAME = "demo";
 
   useEffect(() => {
-    fetch(`http://localhost:5000/hub/${USERNAME}`)
+    // ⭐ CHANGED: localhost → Render backend
+    fetch(`https://smart-link-hub-code-wale.onrender.com/hub/${USERNAME}`)
       .then(res => {
         if (!res.ok) {
           throw new Error("Hub not found");
@@ -57,7 +58,8 @@ function App() {
       {hub.links.map((link, index) => (
         <a
           key={index}
-          href={`http://localhost:5000/hub/${USERNAME}/click/${index}`}
+          // ⭐ CHANGED: localhost → Render backend
+          href={`https://smart-link-hub-code-wale.onrender.com/hub/${USERNAME}/click/${index}`}
           target="_blank"
           rel="noreferrer"
           style={{
