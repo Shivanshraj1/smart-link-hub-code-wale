@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from "react";
+import CreateHub from "./CreateHub";
 
 function App() {
   const [hub, setHub] = useState(null);
   const [error, setError] = useState(null);
 
-  const username = window.location.pathname.replace("/", "") || "demo";
+  // ✅ Get route from hash
+  const hash = window.location.hash.replace("#/", "");
+  const isCreatePage = hash === "create";
+  const username = hash || "demo";
 
   useEffect(() => {
+    if (isCreatePage) return;
+
     fetch(`https://smart-link-hub-code-wale.onrender.com/hub/${username}`)
       .then((res) => {
         if (!res.ok) throw new Error("Hub not found");
@@ -14,10 +20,19 @@ function App() {
       })
       .then((data) => setHub(data))
       .catch((err) => setError(err.message));
-  }, [username]);
+  }, [username, isCreatePage]);
 
-  if (error) return <h2 style={{ textAlign: "center" }}>{error}</h2>;
-  if (!hub) return <h2 style={{ textAlign: "center" }}>Loading...</h2>;
+  if (isCreatePage) {
+    return <CreateHub />;
+  }
+
+  if (error) {
+    return <h2 style={{ textAlign: "center" }}>{error}</h2>;
+  }
+
+  if (!hub) {
+    return <h2 style={{ textAlign: "center" }}>Loading...</h2>;
+  }
 
   return (
     <div style={{ maxWidth: 420, margin: "50px auto", textAlign: "center" }}>
