@@ -1,106 +1,138 @@
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
+
+const Hub = require("./models/Hub");
 
 const app = express();
 
-// ---------- MIDDLEWARE ----------
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type"]
-}));
-
+/* ================= MIDDLEWARE ================= */
+app.use(cors());
 app.use(express.json());
 
-// ---------- MONGODB ----------
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.error("MongoDB connection failed:", err));
+/* ================= HEALTH CHECK ================= */
+app.get("/api/health", (req, res) => {
+  res.json({ status: "Backend running" });
+});
 
-// ---------- SCHEMA ----------
-const hubSchema = new mongoose.Schema({
-  username: String,
-  title: String,
-  links: [
-    {
-      title: String,
-      url: String,
-      clicks: { type: Number, default: 0 }
+/* ================= ROUTES ================= */
+
+// Create Hub
+app.post("/api/hub/create", async (req, res) => {
+  try {
+    const { username, title } = req.body;
+    if (!username || !title) {
+      return res.status(400).json({ message: "username and title required" });
     }
-  ],
-  visits: { type: Number, default: 0 }
-}, { timestamps: true });
 
-const Hub = mongoose.model("Hub", hubSchema);
+    const exists = await Hub.findOne({ username });
+    if (exists) {
+      return res.status(400).json({ message: "username already exists" });
+    }
 
-// ---------- ROUTES ----------
-
-// GET HUB
-app.get("/api/hub/:username", async (req, res) => {
-  const hub = await Hub.findOne({ username: req.params.username });
-  if (!hub) return res.status(404).json({ message: "Hub not found" });
-
-  hub.visits++;
-  await hub.save();
-  res.json(hub);
-});
-
-// CREATE HUB IF NOT EXISTS
-app.post("/api/hub/:username", async (req, res) => {
-  const { title } = req.body;
-
-  let hub = await Hub.findOne({ username: req.params.username });
-  if (!hub) {
-    hub = await Hub.create({
-      username: req.params.username,
-      title: title || `${req.params.username}'s Hub`,
-      links: []
+    const hub = new Hub({
+      username,
+      title,
+      links: [],
+      visits: 0
     });
+
+    await hub.save();
+    res.status(201).json(hub);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  res.json(hub);
 });
 
-// ADD LINK
+// Get Hub
+app.get("/api/hub/:username", async (req, res) => {
+  try {
+    const hub = await Hub.findOne({ username: req.params.username });
+    if (!hub) return res.status(404).json({ message: "Hub not found" });
+
+    hub.visits += 1;
+    await hub.save();
+    res.json(hub);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Add Link
 app.post("/api/hub/:username/link", async (req, res) => {
-  const hub = await Hub.findOne({ username: req.params.username });
-  hub.links.push({ title: req.body.title, url: req.body.url });
-  await hub.save();
-  res.json(hub);
+  try {
+    const { title, url } = req.body;
+    const hub = await Hub.findOne({ username: req.params.username });
+    if (!hub) return res.status(404).json({ message: "Hub not found" });
+
+    hub.links.push({ title, url, clicks: 0 });
+    await hub.save();
+    res.json(hub);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// UPDATE LINK
+// Update Link
 app.put("/api/hub/:username/link/:id", async (req, res) => {
-  const hub = await Hub.findOne({ username: req.params.username });
-  const link = hub.links.id(req.params.id);
-  link.title = req.body.title;
-  link.url = req.body.url;
-  await hub.save();
-  res.json(hub);
+  try {
+    const { title, url } = req.body;
+    const hub = await Hub.findOne({ username: req.params.username });
+    if (!hub) return res.status(404).json({ message: "Hub not found" });
+
+    const link = hub.links.id(req.params.id);
+    if (!link) return res.status(404).json({ message: "Link not found" });
+
+    link.title = title;
+    link.url = url;
+    await hub.save();
+    res.json(hub);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// DELETE LINK
+// Delete Link
 app.delete("/api/hub/:username/link/:id", async (req, res) => {
-  const hub = await Hub.findOne({ username: req.params.username });
-  hub.links.id(req.params.id).deleteOne();
-  await hub.save();
-  res.json(hub);
+  try {
+    const hub = await Hub.findOne({ username: req.params.username });
+    if (!hub) return res.status(404).json({ message: "Hub not found" });
+
+    hub.links.id(req.params.id).deleteOne();
+    await hub.save();
+    res.json(hub);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// CLICK TRACK
+// Click Tracking
 app.patch("/api/hub/:username/link/:id/click", async (req, res) => {
-  const hub = await Hub.findOne({ username: req.params.username });
-  hub.links.id(req.params.id).clicks++;
-  await hub.save();
-  res.json({ success: true });
+  try {
+    const hub = await Hub.findOne({ username: req.params.username });
+    if (!hub) return res.status(404).json({ message: "Hub not found" });
+
+    const link = hub.links.id(req.params.id);
+    if (!link) return res.status(404).json({ message: "Link not found" });
+
+    link.clicks += 1;
+    await hub.save();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// ---------- ROOT ----------
-app.get("/", (req, res) => {
-  res.send("Smart Link Hub Backend Running");
-});
-
-// ---------- PORT ----------
+/* ================= DB + SERVER ================= */
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log("Server running on port", PORT));
+
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("MongoDB connected");
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch(err => console.error("MongoDB connection failed:", err));
