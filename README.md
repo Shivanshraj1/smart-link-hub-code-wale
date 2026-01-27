@@ -17,7 +17,7 @@ https://smart-link-hub-ui.netlify.app/shivansh
 
 ---
 
-## 🎬 Demo Video (7 seconds)
+## 🎬 Demo Video
 
 <video width="600" controls>
   <source src="./assets/Demo_vedio.mp4" type="video/mp4">
