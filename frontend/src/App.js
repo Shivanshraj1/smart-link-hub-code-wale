@@ -50,8 +50,13 @@ export default function App() {
   }
 
   if (!hub) {
-    return <h2 style={{ color: "#fff", textAlign: "center" }}>Loading...</h2>;
-  }
+  return <div style={{ color: "#fff" }}>Loading...</div>;
+}
+
+if (hub.error) {
+  return <div style={{ color: "#fff" }}>Backend not reachable</div>;
+}
+
 
   return (
     <div style={{ background: "#000", minHeight: "100vh", color: "#fff", padding: 30 }}>
