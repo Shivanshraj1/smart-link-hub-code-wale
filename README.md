@@ -43,10 +43,12 @@ Below are real screenshots from the implemented Smart Link Hub application,
 showing the working dashboard, link management, rule configuration, and analytics.
 
 ### Create Smart Link
-![Smart Link Screenshot](images/screenshots/User-Facing_smart_Link.jpeg)
-
 ![Create Link Screenshot](images/screenshots/link_creation.jpeg)
 
+###Public Smart Link 
+![Smart Link Screenshot](images/screenshots/User-Facing_smart_Link.jpeg)
+
+---
 
 ## 🧠 Features
 
