@@ -19,10 +19,9 @@ https://smart-link-hub-ui.netlify.app/shivansh
 
 ## 🎬 Demo Video
 
-<video width="600" controls>
-  <source src="./assets/Demo_vedio.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+▶️ Click play to watch a short walkthrough of **Smart Link Hub** with voice explanation.
+
+<video src="./assets/Demo_vedio.mp4" width="700" controls></video>
 
 ---
 
