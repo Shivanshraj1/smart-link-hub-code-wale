@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 
-const API = "https://smart-link-hub-code-wale-1.onrender.com/api";
-
+const API = "https://smart-link-hub-code-wale-1.onrender.com";
 
 export default function App() {
-  const username = window.location.pathname.replace("/", "") || "demo";
-  const isOwner = new URLSearchParams(window.location.search).get("owner") === "true";
+  const username =
+    window.location.pathname.replace("/", "") || "demo";
+
+  const isOwner =
+    new URLSearchParams(window.location.search).get("owner") === "true";
 
   const [hub, setHub] = useState(null);
   const [title, setTitle] = useState("");
@@ -13,9 +15,15 @@ export default function App() {
 
   useEffect(() => {
     fetch(`${API}/hub/${username}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Hub not found");
+        return res.json();
+      })
       .then(data => setHub(data))
-      .catch(() => setHub(null));
+      .catch(err => {
+        console.error(err);
+        setHub(null);
+      });
   }, [username]);
 
   const addLink = async () => {
@@ -27,24 +35,38 @@ export default function App() {
     window.location.reload();
   };
 
-  if (!hub) return <h2 style={{ color: "#fff" }}>Hub not found</h2>;
+  if (!hub) {
+    return (
+      <div style={{ background: "#000", color: "#0f0", minHeight: "100vh", padding: 40 }}>
+        Hub not found
+      </div>
+    );
+  }
 
   return (
-    <div style={{ background: "#000", minHeight: "100vh", color: "#0f0", padding: 30 }}>
+    <div style={{ background: "#000", minHeight: "100vh", color: "#0f0", padding: 40 }}>
       <h1>{hub.title}</h1>
 
       {isOwner && (
-        <>
-          <input placeholder="Link title" onChange={e => setTitle(e.target.value)} />
-          <input placeholder="URL" onChange={e => setUrl(e.target.value)} />
+        <div>
+          <input
+            placeholder="Title"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+          />
+          <input
+            placeholder="URL"
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+          />
           <button onClick={addLink}>Add Link</button>
-        </>
+        </div>
       )}
 
       <hr />
 
-      {hub.links.map((link, i) => (
-        <div key={i}>
+      {hub.links.map(link => (
+        <div key={link._id}>
           <a href={link.url} target="_blank" rel="noreferrer">
             {link.title}
           </a>
