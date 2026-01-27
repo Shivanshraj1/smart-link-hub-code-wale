@@ -1,40 +1,26 @@
 import { useEffect, useState } from "react";
 
-const API = "https://smart-link-hub-code-wale-1.onrender.com/api";
+const API = "https://smart-link-hub-code-wale-1.onrender.com";
 
 export default function App() {
-  const username =
-    window.location.pathname.replace("/", "") || "demo";
-
-  const isOwner =
-    new URLSearchParams(window.location.search).get("owner") === "true";
+  const username = window.location.pathname.replace("/", "") || "demo";
+  const isOwner = new URLSearchParams(window.location.search).get("owner") === "true";
 
   const [hub, setHub] = useState(null);
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-  const loadHub = async () => {
-    try {
-      const res = await fetch(`${API}/hub/${username}`);
-
-      if (!res.ok) {
-        throw new Error("Backend not ready");
-      }
-
-      const data = await res.json();
-      setHub(data);
-
-    } catch (err) {
-      console.log("Backend waking up...");
-      setTimeout(loadHub, 5000); // retry after 5s
-    }
-  };
-
-  loadHub();
-}, [username]);
-
+    fetch(`${API}/hub/${username}`)
+      .then(res => {
+        if (!res.ok) throw new Error("Backend not reachable");
+        return res.json();
+      })
+      .then(setHub)
+      .catch(() => setError("Backend not reachable"));
+  }, [username]);
 
   const saveLink = async () => {
     const endpoint = editingId
@@ -51,36 +37,21 @@ export default function App() {
   };
 
   const deleteLink = async id => {
-    await fetch(`${API}/hub/${username}/link/${id}`, {
-      method: "DELETE"
-    });
+    await fetch(`${API}/hub/${username}/link/${id}`, { method: "DELETE" });
     window.location.reload();
   };
 
-  const clickLink = async link => {
-    await fetch(
-      `${API}/hub/${username}/link/${link._id}/click`,
-      { method: "PATCH" }
-    );
+  const clickLink = link => {
     window.open(link.url, "_blank");
   };
 
-  if (!hub) {
-  return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#000",
-      color: "#22c55e",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      fontSize: 18
-    }}>
-      Waking up server… ⏳
-    </div>
-  );
-}
+  if (error) {
+    return <h2 style={{ color: "red", textAlign: "center" }}>{error}</h2>;
+  }
 
+  if (!hub) {
+    return <h2 style={{ color: "#fff", textAlign: "center" }}>Loading...</h2>;
+  }
 
   return (
     <div style={{ background: "#000", minHeight: "100vh", color: "#fff", padding: 30 }}>
@@ -88,19 +59,9 @@ export default function App() {
 
       {isOwner && (
         <div>
-          <input
-            placeholder="Title"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-          />
-          <input
-            placeholder="URL"
-            value={url}
-            onChange={e => setUrl(e.target.value)}
-          />
-          <button onClick={saveLink}>
-            {editingId ? "Update Link" : "Add Link"}
-          </button>
+          <input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} />
+          <input placeholder="URL" value={url} onChange={e => setUrl(e.target.value)} />
+          <button onClick={saveLink}>{editingId ? "Update" : "Add"}</button>
         </div>
       )}
 
@@ -108,24 +69,17 @@ export default function App() {
 
       {hub.links.map(link => (
         <div key={link._id}>
-          <button onClick={() => clickLink(link)}>
-            {link.title} ({link.clicks})
-          </button>
+          <button onClick={() => clickLink(link)}>{link.title}</button>
 
           {isOwner && (
             <>
-              <button
-                onClick={() => {
-                  setEditingId(link._id);
-                  setTitle(link.title);
-                  setUrl(link.url);
-                }}
-              >
-                Edit
-              </button>
-              <button onClick={() => deleteLink(link._id)}>
-                Delete
-              </button>
+              <button onClick={() => {
+                setEditingId(link._id);
+                setTitle(link.title);
+                setUrl(link.url);
+              }}>Edit</button>
+
+              <button onClick={() => deleteLink(link._id)}>Delete</button>
             </>
           )}
         </div>
