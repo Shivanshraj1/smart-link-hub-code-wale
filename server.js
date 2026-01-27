@@ -1,27 +1,43 @@
-require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-
-const Hub = require("./models/Hub");
+require("dotenv").config();
 
 const app = express();
-app.use(cors());
+
+// ---------- MIDDLEWARE ----------
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Content-Type"]
+}));
+
 app.use(express.json());
 
-const PORT = process.env.PORT || 5000;
-
-/* ---------- DB ---------- */
-mongoose
-  .connect(process.env.MONGO_URI)
+// ---------- MONGODB ----------
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
-  .catch(err => {
-    console.error("Mongo error (ignored to keep server alive):", err.message);
-  });
+  .catch(err => console.error("MongoDB connection failed:", err));
 
-/* ---------- ROUTES ---------- */
+// ---------- SCHEMA ----------
+const hubSchema = new mongoose.Schema({
+  username: String,
+  title: String,
+  links: [
+    {
+      title: String,
+      url: String,
+      clicks: { type: Number, default: 0 }
+    }
+  ],
+  visits: { type: Number, default: 0 }
+}, { timestamps: true });
 
-// Get hub
+const Hub = mongoose.model("Hub", hubSchema);
+
+// ---------- ROUTES ----------
+
+// GET HUB
 app.get("/api/hub/:username", async (req, res) => {
   const hub = await Hub.findOne({ username: req.params.username });
   if (!hub) return res.status(404).json({ message: "Hub not found" });
@@ -31,21 +47,30 @@ app.get("/api/hub/:username", async (req, res) => {
   res.json(hub);
 });
 
-// Create hub
-app.post("/api/hub", async (req, res) => {
-  const hub = await Hub.create(req.body);
+// CREATE HUB IF NOT EXISTS
+app.post("/api/hub/:username", async (req, res) => {
+  const { title } = req.body;
+
+  let hub = await Hub.findOne({ username: req.params.username });
+  if (!hub) {
+    hub = await Hub.create({
+      username: req.params.username,
+      title: title || `${req.params.username}'s Hub`,
+      links: []
+    });
+  }
   res.json(hub);
 });
 
-// Add link
+// ADD LINK
 app.post("/api/hub/:username/link", async (req, res) => {
   const hub = await Hub.findOne({ username: req.params.username });
-  hub.links.push(req.body);
+  hub.links.push({ title: req.body.title, url: req.body.url });
   await hub.save();
   res.json(hub);
 });
 
-// Edit link
+// UPDATE LINK
 app.put("/api/hub/:username/link/:id", async (req, res) => {
   const hub = await Hub.findOne({ username: req.params.username });
   const link = hub.links.id(req.params.id);
@@ -55,7 +80,7 @@ app.put("/api/hub/:username/link/:id", async (req, res) => {
   res.json(hub);
 });
 
-// Delete link
+// DELETE LINK
 app.delete("/api/hub/:username/link/:id", async (req, res) => {
   const hub = await Hub.findOne({ username: req.params.username });
   hub.links.id(req.params.id).deleteOne();
@@ -63,13 +88,19 @@ app.delete("/api/hub/:username/link/:id", async (req, res) => {
   res.json(hub);
 });
 
-// Click tracking
+// CLICK TRACK
 app.patch("/api/hub/:username/link/:id/click", async (req, res) => {
   const hub = await Hub.findOne({ username: req.params.username });
-  const link = hub.links.id(req.params.id);
-  link.clicks++;
+  hub.links.id(req.params.id).clicks++;
   await hub.save();
   res.json({ success: true });
 });
 
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+// ---------- ROOT ----------
+app.get("/", (req, res) => {
+  res.send("Smart Link Hub Backend Running");
+});
+
+// ---------- PORT ----------
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log("Server running on port", PORT));
