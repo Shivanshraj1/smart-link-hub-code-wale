@@ -1,16 +1,19 @@
 const mongoose = require("mongoose");
 
-const HubSchema = new mongoose.Schema({
-  username: String,
-  password: String,
+const LinkSchema = new mongoose.Schema({
   title: String,
-  links: [
-    {
-      title: String,
-      url: String,
-      clicks: { type: Number, default: 0 }
-    }
-  ]
+  url: String,
+  clicks: { type: Number, default: 0 }
 });
+
+const HubSchema = new mongoose.Schema(
+  {
+    username: { type: String, unique: true },
+    title: String,
+    links: [LinkSchema],
+    visits: { type: Number, default: 0 }
+  },
+  { timestamps: true }
+);
 
 module.exports = mongoose.model("Hub", HubSchema);
