@@ -1,54 +1,61 @@
-const express = require("express");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const Hub = require("../models/Hub");
+import express from "express";
+import Hub from "../models/Hub.js";
 
 const router = express.Router();
-const SECRET = "smartlinksecret";
-
-/* LOGIN / REGISTER */
-router.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-  let hub = await Hub.findOne({ username });
-
-  if (!hub) {
-    const hash = await bcrypt.hash(password, 10);
-    hub = await Hub.create({
-      username,
-      password: hash,
-      title: `${username}'s Hub`,
-      links: []
-    });
-  }
-
-  const valid = await bcrypt.compare(password, hub.password);
-  if (!valid) return res.status(401).json({ error: "Invalid password" });
-
-  const token = jwt.sign({ username }, SECRET);
-  res.json({ token });
-});
 
 /* GET HUB */
 router.get("/:username", async (req, res) => {
   const hub = await Hub.findOne({ username: req.params.username });
+  if (!hub) return res.status(404).json({ message: "Hub not found" });
+
+  hub.visits++;
+  await hub.save();
   res.json(hub);
 });
 
-/* SAVE HUB */
+/* CREATE HUB (AUTO) */
 router.post("/:username", async (req, res) => {
-  const { token, title, links } = req.body;
-  const decoded = jwt.verify(token, SECRET);
-
-  if (decoded.username !== req.params.username)
-    return res.status(403).json({ error: "Forbidden" });
-
-  const hub = await Hub.findOneAndUpdate(
-    { username: decoded.username },
-    { title, links },
-    { new: true }
-  );
-
+  const hub = await Hub.create({
+    username: req.params.username,
+    title: `${req.params.username}'s Hub`,
+    links: []
+  });
   res.json(hub);
 });
 
-module.exports = router;
+/* ADD LINK */
+router.post("/:username/link", async (req, res) => {
+  const hub = await Hub.findOne({ username: req.params.username });
+  hub.links.push(req.body);
+  await hub.save();
+  res.json(hub);
+});
+
+/* UPDATE LINK */
+router.put("/:username/link/:id", async (req, res) => {
+  const hub = await Hub.findOne({ username: req.params.username });
+  const link = hub.links.id(req.params.id);
+  link.title = req.body.title;
+  link.url = req.body.url;
+  await hub.save();
+  res.json(hub);
+});
+
+/* DELETE LINK */
+router.delete("/:username/link/:id", async (req, res) => {
+  const hub = await Hub.findOne({ username: req.params.username });
+  hub.links.id(req.params.id).deleteOne();
+  await hub.save();
+  res.json(hub);
+});
+
+/* CLICK TRACK */
+router.patch("/:username/link/:id/click", async (req, res) => {
+  const hub = await Hub.findOne({ username: req.params.username });
+  const link = hub.links.id(req.params.id);
+  link.clicks++;
+  await hub.save();
+  res.json({ success: true });
+});
+
+export default router;
