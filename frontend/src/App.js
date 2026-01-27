@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
-const API = "https://smart-link-hub-code-wale-1.onrender.com";
+const API = "https://smart-link-hub-code-wale-1.onrender.com/api";
+
 
 export default function App() {
   const username = window.location.pathname.replace("/", "") || "demo";
