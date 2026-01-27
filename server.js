@@ -5,13 +5,21 @@ require("dotenv").config();
 const app = express();
 app.use(express.json());
 
+// 🔥 health check (Render needs this)
 app.get("/", (req, res) => {
-  res.send("Backend is running");
+  res.send("Smart Link Hub backend running");
+});
+
+// 🔥 test API
+app.get("/api/test", (req, res) => {
+  res.json({ status: "ok" });
 });
 
 const PORT = process.env.PORT || 5000;
 
-mongoose.connect(process.env.MONGO_URI)
+// ❗ DO NOT require routes before Mongo connects
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("MongoDB connected");
 
@@ -19,6 +27,6 @@ mongoose.connect(process.env.MONGO_URI)
       console.log(`Server running on port ${PORT}`);
     });
   })
-  .catch(err => {
+  .catch((err) => {
     console.error("MongoDB error:", err);
   });
