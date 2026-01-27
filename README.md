@@ -45,7 +45,7 @@ showing the working dashboard, link management, rule configuration, and analytic
 ### Create Smart Link
 ![Create Link Screenshot](images/screenshots/link_creation.jpeg)
 
-###Public Smart Link 
+### Public Smart Link 
 ![Smart Link Screenshot](images/screenshots/User-Facing_smart_Link.jpeg)
 
 ---
