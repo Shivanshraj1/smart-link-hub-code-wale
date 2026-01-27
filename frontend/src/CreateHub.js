@@ -3,95 +3,111 @@ import React, { useState } from "react";
 function CreateHub() {
   const [username, setUsername] = useState("");
   const [title, setTitle] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+  const createHub = async () => {
+    if (!username || !title) {
+      setError("Please fill all fields");
+      return;
+    }
+
     setLoading(true);
+    setError(null);
 
     try {
       const res = await fetch(
         "https://smart-link-hub-code-wale.onrender.com/hub/create",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username,
-            title,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, title }),
         }
       );
 
+      const data = await res.json();
+
       if (!res.ok) {
-        throw new Error("Username already exists or invalid");
+        setError(data.message || "Failed to create hub");
+        setLoading(false);
+        return;
       }
 
-      // Redirect to user's hub page
-   window.location.href = `/#/${username}`;
+      // 🔐 STORE OWNER KEY
+      localStorage.setItem(username, data.ownerKey);
 
+      // 🔁 REDIRECT TO PROFILE PAGE
+      window.location.hash = `#/${username}`;
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      setError("Server error");
     }
+
+    setLoading(false);
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "400px",
-        margin: "60px auto",
-        padding: "20px",
-        border: "1px solid #ddd",
-        borderRadius: "8px",
-        textAlign: "center",
-        fontFamily: "Arial",
-      }}
-    >
-      <h2>Create Your Link Hub</h2>
+    <div style={styles.page}>
+      <div style={styles.card}>
+        <h2 style={{ color: "#0f0" }}>Create Your Smart Link Hub</h2>
 
-      <form onSubmit={handleSubmit}>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+
         <input
-          type="text"
-          placeholder="Choose a username"
+          style={styles.input}
+          placeholder="Username"
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
+          onChange={(e) => setUsername(e.target.value.toLowerCase())}
         />
 
         <input
-          type="text"
-          placeholder="Hub title"
+          style={styles.input}
+          placeholder="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          required
-          style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
         />
 
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: "10px",
-            background: "#000",
-            color: "#fff",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
+        <button style={styles.button} onClick={createHub} disabled={loading}>
           {loading ? "Creating..." : "Create Hub"}
         </button>
-      </form>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      </div>
     </div>
   );
 }
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    background: "#000",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  card: {
+    background: "#111",
+    padding: 30,
+    borderRadius: 10,
+    width: 350,
+    textAlign: "center",
+    boxShadow: "0 0 20px rgba(0,255,0,0.3)",
+  },
+  input: {
+    width: "100%",
+    padding: 10,
+    margin: "10px 0",
+    borderRadius: 5,
+    border: "1px solid #0f0",
+    background: "#000",
+    color: "#fff",
+  },
+  button: {
+    width: "100%",
+    padding: 10,
+    marginTop: 15,
+    background: "#0f0",
+    border: "none",
+    cursor: "pointer",
+    fontWeight: "bold",
+  },
+};
 
 export default CreateHub;
