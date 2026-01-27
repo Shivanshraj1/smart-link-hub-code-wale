@@ -17,6 +17,15 @@ https://smart-link-hub-ui.netlify.app/shivansh
 
 ---
 
+## 🎬 Demo Video (7 seconds)
+
+<video width="600" controls>
+  <source src="./assets/Demo_vedio.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+---
+
 ## 🎨 Visual Overview (Concept Design)
 
 These concept images represent the design vision and planned user experience
