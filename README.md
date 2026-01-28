@@ -35,7 +35,7 @@ link prioritization.
 ![Dashboard Concept](images/concept/Main_Dashboard.png)
 
 ### ⚙️ Rule-Based Link Configuration (Concept)
-![Rules Concept](images/concept/Link_Creation_and_rule_Cinfiguration.png)
+![Rules Concept](images/concept/Link_Creation_and_Rule_Cinfiguration.png)
 
 ### 📊 Analytics Dashboard (Concept)
 ![Analytics Concept](images/concept/Detailed_Analytics.png)
