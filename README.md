@@ -17,6 +17,14 @@ https://smart-link-hub-ui.netlify.app/shivansh
 
 ---
 
+## 🎬 Demo Video
+
+▶️ Click play to watch a short walkthrough of **Smart Link Hub** with voice explanation.
+
+<video src="./assets/Demo_vedio.mp4" width="700" controls></video>
+
+---
+
 ## 🎨 Visual Overview (Concept Design)
 
 These concept images represent the design vision and planned user experience
@@ -27,7 +35,7 @@ link prioritization.
 ![Dashboard Concept](images/concept/Main_Dashboard.png)
 
 ### ⚙️ Rule-Based Link Configuration (Concept)
-![Rules Concept](images/concept/Link_Creation_and_rule_Cinfiguration.png)
+![Rules Concept](images/concept/Link_Creation_and_Rule_Configuration.png)
 
 ### 📊 Analytics Dashboard (Concept)
 ![Analytics Concept](images/concept/Detailed_Analytics.png)
