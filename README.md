@@ -11,10 +11,6 @@ Built for hackathons and real-world usage with a clean UI, persistent backend st
 - **Frontend (Vercel)**: https://smart-link-hub-code-wale.vercel.app/  
 - **Backend (Render)**: https://smart-link-hub-code-wale-1.onrender.com  
 
-Example profile:
-https://smart-link-hub-ui.vercel.app/shivansh
-
-
 ---
 
 ## 🎬 Demo Video
